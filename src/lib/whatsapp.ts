@@ -11,6 +11,7 @@ export const WA_SELECTORS = {
 
 const SELECTOR_BUTTON_CLASS = 'wg-selector-btn';
 const SELECTED_CHAT_KEY = '__wg_selected_chat';
+const selectionHandlers = new WeakMap<HTMLElement, EventListener>();
 
 export interface ChatListItem {
   name: string;
@@ -137,6 +138,11 @@ function getPrimaryChatTarget(item: HTMLElement): HTMLElement {
   return candidates.find((candidate) => isVisible(candidate)) || item;
 }
 
+function getVisibleMarkerLeft(item: HTMLElement): number {
+  const rect = item.getBoundingClientRect();
+  return Math.max(12, 12 - rect.left);
+}
+
 function fireSyntheticClick(target: HTMLElement) {
   const pointerTypes = ['pointerdown', 'pointerup'] as const;
   if (typeof PointerEvent !== 'undefined') {
@@ -200,7 +206,7 @@ function markSelectedButton(button: HTMLElement) {
 
   button.style.backgroundColor = '#4f46e5';
   button.style.border = '2px solid #4f46e5';
-  button.innerHTML = '<span style="color:white; font-size: 12px; line-height: 1;">✓</span>';
+  button.innerHTML = '<span style="color:white; font-size: 12px; line-height: 1;">&#10003;</span>';
 }
 
 // Returns array of { name, unreadCount }
@@ -253,19 +259,23 @@ export function injectSelectionButtons(): void {
     if (item.querySelector(`.${SELECTOR_BUTTON_CLASS}`)) return;
 
     item.dataset.wgChatRowId = item.dataset.wgChatRowId || `chat-${Date.now()}-${index}`;
+    if (window.getComputedStyle(item).position === 'static') {
+      item.style.position = 'relative';
+    }
 
     const btn = document.createElement('div');
     btn.className = SELECTOR_BUTTON_CLASS;
+    btn.style.position = 'absolute';
+    btn.style.left = `${getVisibleMarkerLeft(item)}px`;
+    btn.style.top = '50%';
+    btn.style.transform = 'translateY(-50%)';
     btn.style.width = '20px';
     btn.style.height = '20px';
     btn.style.borderRadius = '50%';
     btn.style.backgroundColor = 'rgba(255,255,255,0.95)';
     btn.style.border = '2px solid #cbd5e1';
-    btn.style.cursor = 'pointer';
-    btn.style.marginLeft = '12px';
-    btn.style.marginRight = '8px';
-    btn.style.flexShrink = '0';
-    btn.style.zIndex = '9999';
+    btn.style.pointerEvents = 'none';
+    btn.style.zIndex = '3';
     btn.style.padding = '0';
     btn.style.display = 'flex';
     btn.style.alignItems = 'center';
@@ -276,7 +286,7 @@ export function injectSelectionButtons(): void {
     const imgEl = item.querySelector<HTMLImageElement>('img');
     const avatarUrl = imgEl?.src || '';
 
-    btn.addEventListener('click', () => {
+    const handleSelection = () => {
       markSelectedButton(btn);
       setSelectedChatState({
         name,
@@ -284,23 +294,31 @@ export function injectSelectionButtons(): void {
         rowId: item.dataset.wgChatRowId,
       });
 
-      // Let the trusted row click open the WhatsApp chat first, then open the side panel.
+      // Give WhatsApp time to process the trusted row click before the side panel steals focus.
       window.setTimeout(() => {
         chrome.runtime.sendMessage({
           type: 'CHAT_SELECTED',
           data: { name, avatarUrl },
         });
-      }, 0);
-    });
+      }, 180);
+    };
 
-    item.prepend(btn);
-    item.style.display = 'flex';
-    item.style.alignItems = 'center';
+    item.addEventListener('click', handleSelection);
+    selectionHandlers.set(item, handleSelection);
+
+    item.appendChild(btn);
   });
 }
 
 export function removeSelectionButtons(): void {
   document.querySelectorAll(`.${SELECTOR_BUTTON_CLASS}`).forEach((btn) => btn.remove());
+  getChatListItems().forEach((item) => {
+    const handler = selectionHandlers.get(item);
+    if (handler) {
+      item.removeEventListener('click', handler);
+      selectionHandlers.delete(item);
+    }
+  });
 }
 
 export function parseMetaAttr(

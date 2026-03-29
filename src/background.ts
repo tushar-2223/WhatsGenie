@@ -45,6 +45,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               selectedAt: Date.now(),
             },
           });
+
+          // Let WhatsApp finish opening the clicked row before focusing the side panel.
+          await new Promise((resolve) => setTimeout(resolve, 220));
         }
 
         await openSidePanelForSender(sender);
