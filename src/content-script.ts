@@ -1,6 +1,14 @@
 /// <reference types="chrome" />
 
-import { scrapeMessages, getChatList, openChatByName, injectSelectionButtons, removeSelectionButtons, scrollToLoadMore } from './lib/whatsapp';
+import {
+    scrapeMessages,
+    getChatList,
+    injectSelectionButtons,
+    removeSelectionButtons,
+    scrollToLoadMore,
+    getMessageScrollContainer,
+    getOpenChatName,
+} from './lib/whatsapp';
 
 function showOverlay(message: string) {
     let overlay = document.getElementById('wg-extraction-overlay');
@@ -42,11 +50,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         try {
             console.log('WhatsGenie: Injecting selectors...');
             injectSelectionButtons();
-            
-            // Re-inject on scroll/mutation to handle infinite scroll
+
+            // Re-inject on mutations so newly rendered rows also get selectors.
             const observer = new MutationObserver(() => injectSelectionButtons());
             const pane = document.getElementById('pane-side');
-            if (pane) observer.observe(pane, { childList: true, subtree: true });
+            observer.observe(pane || document.body, { childList: true, subtree: true });
             
             // Store observer on window to disconnect later
             (window as any).__wg_observer = observer;
@@ -91,31 +99,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.type === 'OPEN_AND_EXTRACT_CHAT') {
-        try {
-            const { chatName } = request;
-            console.log('WhatsGenie: Opening chat', chatName);
-            showOverlay(`Opening "${chatName}"...`);
-            
-            // Explicitly open the chat by simulating a click
-            const opened = openChatByName(chatName);
-            if (!opened) {
-               hideOverlay();
-               sendResponse({ success: false, error: 'Chat not found on screen. Try scrolling down in WhatsApp.' });
-               return true;
-            }
-            
-            // Wait for chat panel to render
-            setTimeout(async () => {
+        (async () => {
+            try {
+                const openedChatName = getOpenChatName();
+                if (!openedChatName) {
+                   hideOverlay();
+                   sendResponse({ success: false, error: 'Please click the chat row in WhatsApp first so the conversation is open before extracting.' });
+                   return;
+                }
+
                 try {
-                    showOverlay(`Loading all messages from "${chatName}"...`);
-                    
-                    // Aggressively scroll to load entire chat history
-                    await scrollToLoadMore('div.x10l6tqk.x13vifvy', 50);
-                    
-                    // Scroll back to bottom so user sees latest messages after extraction
-                    const container = document.querySelector('div.x10l6tqk.x13vifvy') || document.querySelector('#main div[tabindex]');
+                    showOverlay(`Loading all messages from "${openedChatName}"...`);
+
+                    // Load the full history from the top of the currently open chat panel.
+                    await scrollToLoadMore(undefined, 50);
+
+                    // Scroll back to bottom so the user still sees the latest messages after extraction.
+                    const container = getMessageScrollContainer();
                     if (container) container.scrollTop = container.scrollHeight;
-                    
+
                     showOverlay('Extracting messages...');
                     console.log('WhatsGenie: Scraping messages...');
                     const data = scrapeMessages();
@@ -123,16 +125,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     hideOverlay();
                     sendResponse({ success: true, data });
                 } catch(e: any) {
-                    console.error('WhatsGenie extraction error:', e);
+                     console.error('WhatsGenie extraction error:', e);
                     hideOverlay();
                     sendResponse({ success: false, error: String(e) });
                 }
-            }, 2000);
 
-        } catch (error: any) {
-            hideOverlay();
-            sendResponse({ success: false, error: String(error) });
-        }
+            } catch (error: any) {
+                hideOverlay();
+                sendResponse({ success: false, error: String(error) });
+            }
+        })();
         return true;
     }
 });

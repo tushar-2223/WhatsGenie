@@ -1,14 +1,11 @@
-// src/lib/gemini.ts
-// Replaced with OpenRouter API to avoid Gemini quota limits
+import { Groq } from 'groq-sdk';
+import { DEFAULT_GROQ_MODEL } from './config';
 
-export const MODELS = {
-  qwenFree: 'qwen/qwen3-next-80b-a3b-instruct:free',
-  llama3: 'meta-llama/llama-3-8b-instruct:free',
+export const GROQ_MODELS = {
+  gptOss120b: 'openai/gpt-oss-120b',
 } as const;
 
-export type ModelKey = keyof typeof MODELS;
-
-const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
+export type ModelKey = keyof typeof GROQ_MODELS;
 
 export interface ChatMessage {
   sender: string;
@@ -17,31 +14,35 @@ export interface ChatMessage {
   isOutgoing?: boolean;
 }
 
-export async function callOpenRouter(apiKey: string, model: string, prompt: string): Promise<string> {
-  const response = await fetch(BASE_URL, {
-    method: 'POST',
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://github.com/tushar-2223/WhatsGenie",
-      "X-OpenRouter-Title": "WhatsGenie",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [{ role: "user", content: prompt }]
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error?.message || 'OpenRouter API error');
+export async function callGroq(apiKey: string, model: string, prompt: string): Promise<string> {
+  if (!apiKey.trim()) {
+    throw new Error('Missing Groq API key.');
   }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
-}
+  // This runs inside the extension side panel, so browser use is intentional here.
+  const groq = new Groq({
+    apiKey: apiKey.trim(),
+    dangerouslyAllowBrowser: true,
+  });
 
-// ── PROMPTS ──────────────────────────────────────────────────
+  const stream = await groq.chat.completions.create({
+    messages: [{ role: 'user', content: prompt }],
+    model: model || DEFAULT_GROQ_MODEL,
+    temperature: 1,
+    max_completion_tokens: 8192,
+    top_p: 1,
+    stream: true,
+    reasoning_effort: 'medium',
+  });
+
+  let fullResponse = '';
+
+  for await (const chunk of stream) {
+    fullResponse += chunk.choices[0]?.delta?.content || '';
+  }
+
+  return fullResponse.trim();
+}
 
 export function buildSummarizePrompt(
   messages: ChatMessage[],
@@ -57,19 +58,19 @@ export function buildSummarizePrompt(
 Provide your response in this exact structure:
 
 ## Summary
-(3–5 sentences capturing the main discussion)
+(3-5 sentences capturing the main discussion)
 
 ## Key Topics
 (bullet list of main subjects discussed)
 
 ## Action Items
-(any tasks, decisions, or follow-ups mentioned — write "None identified" if absent)
+(any tasks, decisions, or follow-ups mentioned - write "None identified" if absent)
 
 ## Sentiment
 (overall tone in one word: Positive / Neutral / Tense / Mixed)
 
 ## Most Active Members
-(top 3 participants by message count, format: "Name — X messages")
+(top 3 participants by message count, format: "Name - X messages")
 
 ---
 CHAT MESSAGES:

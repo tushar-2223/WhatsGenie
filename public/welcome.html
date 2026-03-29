@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to WhatsGenie</title>
+  <style>
+    :root {
+      --bg: #f3f4f8;
+      --card: rgba(255, 255, 255, 0.95);
+      --border: rgba(28, 33, 48, 0.08);
+      --text: #141824;
+      --muted: #6b7280;
+      --primary: #635bff;
+      --primary-hover: #544ded;
+      --surface: #f8f9fc;
+      --shadow: 0 24px 60px rgba(30, 34, 48, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 219, 237, 0.8), transparent 30%),
+        radial-gradient(circle at top right, rgba(207, 224, 255, 0.7), transparent 28%),
+        linear-gradient(180deg, #f4f4f7 0%, #ececf1 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 18px;
+    }
+
+    .page {
+      width: min(760px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1.1;
+    }
+
+    .lead {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+      margin: 0 0 28px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 16px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid rgba(27, 31, 46, 0.08);
+    }
+
+    .step-index {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(99, 91, 255, 0.12);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .step h2 {
+      margin: 0 0 4px;
+      font-size: 17px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 180px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .button-primary {
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .button-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .button-secondary {
+      color: var(--text);
+      background: #fff;
+      border: 1px solid rgba(27, 31, 46, 0.12);
+    }
+
+    .button-secondary:hover {
+      background: var(--surface);
+      transform: translateY(-1px);
+    }
+
+    .note {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    code {
+      background: rgba(99, 91, 255, 0.08);
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="brand">
+      <img src="./icon/48.png" alt="WhatsGenie logo" />
+      <span>WhatsGenie</span>
+    </div>
+
+    <h1>Welcome to WhatsGenie</h1>
+    <p class="lead">
+      Your extension is ready. Follow these steps to select a WhatsApp chat, extract the conversation,
+      and keep the latest messages synced in the side panel.
+    </p>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-index">1</div>
+        <div>
+          <h2>Open WhatsApp Web</h2>
+          <p>Sign in at WhatsApp Web and keep the chat list visible in the left sidebar.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-index">2</div>
+        <div>
+          <h2>Open the WhatsGenie side panel</h2>
+          <p>Click the extension icon, then use the <code>+</code> button to show chat selector markers.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-index">3</div>
+        <div>
+          <h2>Select and extract a chat</h2>
+          <p>Choose the chat you want, let WhatsApp open it automatically, then press <code>Extract</code>.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-index">4</div>
+        <div>
+          <h2>Sync new messages anytime</h2>
+          <p>Use the sync button in the top header to refresh the current conversation with the latest loaded messages.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="actions">
+      <a class="button button-primary" href="https://web.whatsapp.com" target="_blank" rel="noreferrer">
+        Open WhatsApp Web
+      </a>
+      <a class="button button-secondary" href="./src/sidepanel/sidepanel.html" target="_blank" rel="noreferrer">
+        Open WhatsGenie Panel
+      </a>
+    </div>
+
+    <p class="note">
+      Tip: If you do not see selector buttons inside WhatsApp, refresh <code>web.whatsapp.com</code> once and open the side panel again.
+    </p>
+  </main>
+</body>
+</html>

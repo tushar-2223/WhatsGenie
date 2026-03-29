@@ -1,10 +1,10 @@
-import { OPENROUTER_KEY } from './config';
+import { GROQ_API_KEY } from './config';
 
 export const initializeDefaults = async () => {
-  const current = await chrome.storage.local.get(['openrouter_api_key']);
-  if (!current.openrouter_api_key && OPENROUTER_KEY) {
+  const current = await chrome.storage.local.get(['groq_api_key']);
+  if (!current.groq_api_key && GROQ_API_KEY) {
     await chrome.storage.local.set({
-      openrouter_api_key: OPENROUTER_KEY
+      groq_api_key: GROQ_API_KEY,
     });
   }
 };
