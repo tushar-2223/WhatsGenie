@@ -1,97 +1,69 @@
-# 🧞 WhatsGenie — WhatsApp Chat Summarizer
+# 🧞 WhatsGenie
 
-> Extract and summarize your WhatsApp chats using Gemini AI — powered by a native Chrome Side Panel.
+> AI-powered WhatsApp chat summarizer — extract, summarize, and query your WhatsApp conversations using Gemini AI, right inside your browser.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4f46e5?logo=googlechrome&logoColor=white)
 ![Gemini AI](https://img.shields.io/badge/AI-Gemini%201.5%20Flash-8b5cf6?logo=google&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-22c55e)
 
 ---
 
 ## ✨ Features
 
-- **DOM-based chat selection** — Click a `(+)` button in the Side Panel and selection markers appear directly on your WhatsApp chat list
-- **One-click extraction** — Select a chat, hit Extract, and all visible messages are scraped instantly
-- **Auto-scroll loading** — Automatically scrolls up to load older messages before extraction
-- **AI Summarization** — Gemini 1.5 Flash generates concise summaries in seconds
-- **Q&A Mode** — Ask direct questions and get accurate answers from your chat history
-- **Custom Prompts** — Run your own AI prompts against extracted chat data
-- **Extraction Overlay** — A blocking loader prevents accidental navigation during extraction
-- **Native Side Panel** — Runs as a Chrome Side Panel, not a popup — always visible alongside WhatsApp Web
-- **Modern UI** — Premium Indigo theme with [Iconsax](https://iconsax-react.pages.dev/) icons
+- 🎯 **DOM-Based Chat Selection** — Selection markers injected directly into the WhatsApp Web sidebar for intuitive chat picking
+- ⚡ **One-Click Extraction** — Select a chat, hit Extract, and all messages are scraped from the DOM
+- 📜 **Auto-Scroll Loading** — Automatically scrolls up to load older messages before extraction
+- 🤖 **AI Summarization** — Gemini 1.5 Flash generates concise summaries instantly
+- ❓ **Q&A Mode** — Ask direct questions about your chat history and get accurate answers
+- ✍️ **Custom Prompts** — Run your own AI prompts against extracted data
+- 🔒 **Extraction Overlay** — Blocking loader prevents accidental navigation during extraction
+- 📌 **Native Side Panel** — Runs as a Chrome Side Panel, always visible alongside WhatsApp Web
+- 🎨 **Modern UI** — Premium Indigo theme with [Iconsax](https://iconsax-react.pages.dev/) icons
 
 ---
 
-## 🚀 Setup Guide
+## 🖼️ How It Works
+
+1. Open WhatsApp Web → Open the WhatsGenie Side Panel
+2. Click **(+)** — selection circles appear next to each chat
+3. Pick a chat — it highlights in indigo
+4. Hit **Extract** — a loading overlay covers WhatsApp while messages are scraped
+5. Choose an AI mode — **Summary**, **Q&A**, or **Custom Prompt**
+6. Click **Generate Answer** → done! 🎉
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) runtime installed (or Node.js 18+)
-- Google Chrome browser
+- [Bun](https://bun.sh/) (recommended) or Node.js 18+
+- Google Chrome
 - A free [Gemini API Key](https://aistudio.google.com/apikey)
 
-### 1. Clone & Install
+### Installation
 
 ```bash
+# Clone the repo
 git clone https://github.com/tushar-2223/WhatsGenie.git
 cd WhatsGenie
-bun install
-```
 
-### 2. Build the Extension
-
-```bash
-bun run build
-```
-
-This compiles TypeScript and bundles everything into the `dist/` folder.
-
-### 3. Load in Chrome
-
-1. Open Chrome → navigate to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in top-right corner)
-3. Click **Load unpacked**
-4. Select the `dist/` folder inside this project
-5. The WhatsGenie icon will appear in your toolbar
-
-### 4. Configure API Key
-
-1. Navigate to [web.whatsapp.com](https://web.whatsapp.com) and log in
-2. Click the WhatsGenie icon → the Side Panel opens
-3. On first launch, you'll see the **Settings** screen
-4. Paste your **Gemini API Key** (get one free at [aistudio.google.com](https://aistudio.google.com/apikey))
-5. Click **Save Settings** — you're ready to go! 🎉
-
-### 5. Using WhatsGenie
-
-1. Make sure you're on [web.whatsapp.com](https://web.whatsapp.com)
-2. Open the WhatsGenie Side Panel
-3. Click the **(+)** button in the top-right corner
-4. Selection circles will appear next to each chat in your WhatsApp sidebar
-5. Click a circle to select a chat — it will be highlighted in indigo
-6. The Side Panel updates to show the selected chat with an **Extract** button
-7. Click **Extract** — a loading overlay covers WhatsApp while messages are scraped
-8. Once extracted, choose an AI mode:
-   - **Summary** — Get key topics, action items, and a concise overview
-   - **Q&A** — Ask specific questions about the chat
-   - **Custom** — Run your own prompt against the data
-9. Click **Generate Answer** and view the AI response
-10. Use **← Select Another Chat** to go back and analyze a different chat
-
----
-
-## 🛠 Development
-
-```bash
 # Install dependencies
 bun install
 
-# Build for production
+# Build the extension
 bun run build
 ```
 
-After building, reload the extension in `chrome://extensions/` to pick up changes.
+### Load in Chrome
+
+1. Navigate to `chrome://extensions/`
+2. Enable **Developer mode** (top-right toggle)
+3. Click **Load unpacked** → select the `dist/` folder
+4. Open [web.whatsapp.com](https://web.whatsapp.com) → click the WhatsGenie icon
+5. Enter your Gemini API key in Settings
 
 ---
 
@@ -100,50 +72,26 @@ After building, reload the extension in `chrome://extensions/` to pick up change
 ```
 WhatsGenie/
 ├── src/
-│   ├── manifest.json             ← Chrome extension manifest (MV3)
-│   ├── background.ts             ← Service worker (side panel registration)
-│   ├── content-script.ts         ← WhatsApp DOM interaction & extraction overlay
+│   ├── manifest.json             # Chrome extension manifest (MV3)
+│   ├── background.ts             # Service worker (side panel registration)
+│   ├── content-script.ts         # DOM interaction, selector injection & overlay
 │   ├── lib/
-│   │   ├── config.ts             ← Default Gemini API key
-│   │   ├── gemini.ts             ← Gemini API client & prompt templates
-│   │   ├── storage.ts            ← chrome.storage helpers
-│   │   └── whatsapp.ts           ← DOM selectors, scrapers & selector injection
+│   │   ├── config.ts             # Default configuration
+│   │   ├── gemini.ts             # Gemini API client & prompt templates
+│   │   ├── storage.ts            # chrome.storage helpers
+│   │   └── whatsapp.ts           # DOM selectors, scrapers & chat navigation
 │   ├── sidepanel/
-│   │   ├── sidepanel.html        ← Side Panel entry point
-│   │   ├── sidepanel.tsx         ← React UI (state machine: idle → selecting → selected → extracting → analyzing)
-│   │   └── sidepanel.css         ← Indigo design system
+│   │   ├── sidepanel.html        # Side Panel entry point
+│   │   ├── sidepanel.tsx         # React UI with state machine
+│   │   └── sidepanel.css         # Indigo design system
 │   └── styles/
-│       └── globals.css           ← Shared design tokens
+│       └── globals.css           # Shared design tokens
 ├── public/
-│   └── icon/                     ← Extension icons (16/48/128px)
-├── vite.config.ts                ← Vite build config with web-extension plugin
+│   └── icon/                     # Extension icons
+├── vite.config.ts
 ├── tsconfig.json
-├── package.json
-└── README.md
+└── package.json
 ```
-
----
-
-## 🔧 Troubleshooting
-
-### Selection buttons don't appear
-- Make sure you're on `web.whatsapp.com` (not the desktop app or a different URL)
-- Refresh the WhatsApp Web page
-- Close and reopen the Side Panel
-- Check the browser console for errors starting with `WhatsGenie:`
-
-### "Successfully extracted 0 messages"
-- WhatsApp may have updated their DOM structure
-- Open DevTools (F12) on the WhatsApp tab and check Console for `WhatsGenie scraper:` logs
-- The DOM selectors in `src/lib/whatsapp.ts` may need updating — look for `.message-in`, `.message-out`, `.copyable-text`, and `span.selectable-text`
-
-### Gemini API errors
-- Verify your API key is correct in Settings
-- Ensure the key has access to `gemini-1.5-flash`
-- Check that you haven't hit the free-tier rate limit (15 RPM)
-
-### Side Panel shows "WhatsApp Web Only"
-- Navigate to `web.whatsapp.com` first — the extension only activates on WhatsApp Web
 
 ---
 
@@ -153,17 +101,64 @@ WhatsGenie/
 |---|---|
 | **React 18** | Side Panel UI |
 | **TypeScript** | Type safety across all scripts |
-| **Vite** | Build tooling & HMR |
+| **Vite** | Build tooling with web-extension plugin |
 | **Chrome MV3** | Extension APIs (sidePanel, storage, tabs, scripting) |
 | **Gemini 1.5 Flash** | AI summarization, Q&A, custom prompts |
-| **Iconsax React** | Premium icon library |
+| **Iconsax React** | Icon library |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get involved:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'feat: add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Development
+
+```bash
+# Install dependencies
+bun install
+
+# Build (compiles TS + bundles via Vite)
+bun run build
+```
+
+After building, reload the extension in `chrome://extensions/` to test your changes.
+
+### Areas for Contribution
+
+- 🌐 Multi-language support
+- 📊 Chat analytics and visualizations
+- 📎 Media message extraction (images, videos, documents)
+- 🔄 Multi-chat selection and comparison
+- 🎨 Theme customization (dark mode, custom colors)
+- 🧪 Unit and integration tests
+
+---
+
+## ⚠️ Disclaimer
+
+This extension interacts with the WhatsApp Web DOM, which is not an official API. WhatsApp may update their DOM structure at any time, which could temporarily break extraction. If this happens, the selectors in `src/lib/whatsapp.ts` will need updating.
+
+This project is not affiliated with, endorsed by, or connected to WhatsApp or Meta in any way.
 
 ---
 
 ## 📄 License
 
-MIT
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-Built with ❤️ using Vite + React + Gemini AI
+## ⭐ Star History
+
+If you find this project useful, please consider giving it a ⭐ — it helps others discover it!
+
+---
+
+Built with ❤️ by [Tushar](https://github.com/tushar-2223)
