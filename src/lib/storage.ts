@@ -1,10 +1,10 @@
-import { GEMINI_KEY } from './config';
+import { OPENROUTER_KEY } from './config';
 
 export const initializeDefaults = async () => {
-  const current = await chrome.storage.local.get(['gemini_api_key']);
-  if (!current.gemini_api_key && GEMINI_KEY) {
+  const current = await chrome.storage.local.get(['openrouter_api_key']);
+  if (!current.openrouter_api_key && OPENROUTER_KEY) {
     await chrome.storage.local.set({
-      gemini_api_key: GEMINI_KEY
+      openrouter_api_key: OPENROUTER_KEY
     });
   }
 };

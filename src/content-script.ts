@@ -94,8 +94,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         try {
             const { chatName } = request;
             console.log('WhatsGenie: Opening chat', chatName);
-            showOverlay(`Opening & Extracting ${chatName}... loading older messages.`);
+            showOverlay(`Opening "${chatName}"...`);
             
+            // Explicitly open the chat by simulating a click
             const opened = openChatByName(chatName);
             if (!opened) {
                hideOverlay();
@@ -103,13 +104,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                return true;
             }
             
-            // Wait for messages to render, then scroll to load more
+            // Wait for chat panel to render
             setTimeout(async () => {
                 try {
-                    console.log('WhatsGenie: Starting scroll to load older messages...');
-                    // We target the message scroll container identified by the user
-                    await scrollToLoadMore('div.x10l6tqk.x13vifvy', 3);
+                    showOverlay(`Loading all messages from "${chatName}"...`);
                     
+                    // Aggressively scroll to load entire chat history
+                    await scrollToLoadMore('div.x10l6tqk.x13vifvy', 50);
+                    
+                    // Scroll back to bottom so user sees latest messages after extraction
+                    const container = document.querySelector('div.x10l6tqk.x13vifvy') || document.querySelector('#main div[tabindex]');
+                    if (container) container.scrollTop = container.scrollHeight;
+                    
+                    showOverlay('Extracting messages...');
                     console.log('WhatsGenie: Scraping messages...');
                     const data = scrapeMessages();
                     console.log('WhatsGenie: Got', data.length, 'messages');
@@ -120,7 +127,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     hideOverlay();
                     sendResponse({ success: false, error: String(e) });
                 }
-            }, 2500);
+            }, 2000);
 
         } catch (error: any) {
             hideOverlay();

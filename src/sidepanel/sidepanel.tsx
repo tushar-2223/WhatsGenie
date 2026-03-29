@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AddCircle, Setting2, ArrowLeft2, InfoCircle } from 'iconsax-react';
-import { callGemini, buildSummarizePrompt, buildQAPrompt, buildCustomPrompt, ChatMessage } from '../lib/gemini';
-import { GEMINI_KEY } from '../lib/config';
+import { callOpenRouter, buildSummarizePrompt, buildQAPrompt, buildCustomPrompt, ChatMessage } from '../lib/gemini';
+import { OPENROUTER_KEY } from '../lib/config';
 
 type AppState = 'idle' | 'selecting' | 'selected' | 'extracting' | 'analyzing';
 
 function App() {
-  const [apiKey, setApiKey] = useState(GEMINI_KEY || '');
+  const [apiKey, setApiKey] = useState(OPENROUTER_KEY || '');
+  const [geminiModel, setGeminiModel] = useState('qwen/qwen3-next-80b-a3b-instruct:free');
   const [isConfigured, setIsConfigured] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isWhatsApp, setIsWhatsApp] = useState(true);
@@ -39,11 +40,12 @@ function App() {
     chrome.tabs.onActivated.addListener(checkIfWhatsApp);
     chrome.tabs.onUpdated.addListener(checkIfWhatsApp);
 
-    chrome.storage.local.get(['gemini_api_key']).then((res) => {
-      if (res.gemini_api_key) {
-        setApiKey(res.gemini_api_key as string);
+    chrome.storage.local.get(['openrouter_api_key', 'openrouter_model']).then((res) => {
+      if (res.openrouter_model) setGeminiModel(res.openrouter_model as string);
+      if (res.openrouter_api_key) {
+        setApiKey(res.openrouter_api_key as string);
         setIsConfigured(true);
-      } else if (GEMINI_KEY) {
+      } else if (OPENROUTER_KEY) {
         setIsConfigured(true);
       }
     });
@@ -61,7 +63,7 @@ function App() {
 
   const saveApiKey = async () => {
     if (!apiKey.trim()) return alert('Please enter a valid API key');
-    await chrome.storage.local.set({ gemini_api_key: apiKey.trim() });
+    await chrome.storage.local.set({ openrouter_api_key: apiKey.trim(), openrouter_model: geminiModel });
     setIsConfigured(true);
     setShowSettings(false);
   };
@@ -133,7 +135,7 @@ function App() {
         prompt = buildCustomPrompt(chatData, customPrompt);
       }
 
-      const response = await callGemini(apiKey, 'gemini-1.5-flash', prompt);
+      const response = await callOpenRouter(apiKey, geminiModel, prompt);
       setResult(response);
       setStatus('');
     } catch (e: any) {
@@ -164,16 +166,23 @@ function App() {
         <p className="subtitle">Configure WhatsGenie to get started</p>
 
         <div className="card">
-          <label className="label">Gemini API Key</label>
+          <label className="label">OpenRouter API Key</label>
           <input
             type="password"
-            placeholder="AIzaSy..."
+            placeholder="sk-or-v1-..."
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
           <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            Get your free API key from Google AI Studio.
+            Get your free API key from OpenRouter.ai.
           </p>
+          <label className="label" style={{marginTop: 12}}>AI Model</label>
+          <select value={geminiModel} onChange={(e) => setGeminiModel(e.target.value)} style={{width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-lighter)', color: 'white', fontSize: '13px'}}>
+            <option value="qwen/qwen3-next-80b-a3b-instruct:free">Qwen 3 Next 80B (Free)</option>
+            <option value="meta-llama/llama-3-8b-instruct:free">Llama 3 8B (Free)</option>
+            <option value="google/gemini-2.0-flash-lite-preview-02-05:free">Gemini 2.0 Flash Lite (Free)</option>
+            <option value="google/gemini-2.5-flash-free">Gemini 2.5 Flash (Free)</option>
+          </select>
         </div>
 
         <button onClick={saveApiKey}>Save Settings</button>
@@ -190,6 +199,7 @@ function App() {
     <>
       <h1 className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/icon/48.png" alt="WhatsGenie Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
           <span>WhatsGenie</span>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>

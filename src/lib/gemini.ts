@@ -1,14 +1,14 @@
 // src/lib/gemini.ts
-// All Gemini API calls and prompt templates
+// Replaced with OpenRouter API to avoid Gemini quota limits
 
 export const MODELS = {
-  flash: 'gemini-1.5-flash',
-  pro: 'gemini-1.5-pro',
+  qwenFree: 'qwen/qwen3-next-80b-a3b-instruct:free',
+  llama3: 'meta-llama/llama-3-8b-instruct:free',
 } as const;
 
 export type ModelKey = keyof typeof MODELS;
 
-const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
+const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export interface ChatMessage {
   sender: string;
@@ -17,24 +17,28 @@ export interface ChatMessage {
   isOutgoing?: boolean;
 }
 
-export async function callGemini(apiKey: string, model: string, prompt: string): Promise<string> {
-  const url = `${BASE_URL}${model}:generateContent?key=${apiKey}`;
-  const response = await fetch(url, {
+export async function callOpenRouter(apiKey: string, model: string, prompt: string): Promise<string> {
+  const response = await fetch(BASE_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://github.com/tushar-2223/WhatsGenie",
+      "X-OpenRouter-Title": "WhatsGenie",
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+      model: model,
+      messages: [{ role: "user", content: prompt }]
     }),
   });
 
   if (!response.ok) {
     const err = await response.json();
-    throw new Error(err.error?.message || 'Gemini API error');
+    throw new Error(err.error?.message || 'OpenRouter API error');
   }
 
   const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return data.choices?.[0]?.message?.content || '';
 }
 
 // ── PROMPTS ──────────────────────────────────────────────────

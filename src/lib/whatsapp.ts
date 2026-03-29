@@ -77,7 +77,12 @@ export function injectSelectionButtons(): void {
     const avatarUrl = imgEl?.src || '';
 
     btn.addEventListener('click', (e) => {
-      // Intentionally DO NOT stopPropagation so the chat automatically opens in the background!
+      // Force the chat to open natively in WhatsApp
+      e.stopPropagation();
+      item.dispatchEvent(new MouseEvent('mousedown', { view: window, bubbles: true, cancelable: true }));
+      item.dispatchEvent(new MouseEvent('mouseup', { view: window, bubbles: true, cancelable: true }));
+      item.dispatchEvent(new MouseEvent('click', { view: window, bubbles: true, cancelable: true }));
+
       document.querySelectorAll('.wg-selector-btn').forEach(b => {
         (b as HTMLElement).style.backgroundColor = 'white';
         b.innerHTML = '';
@@ -169,17 +174,39 @@ export function scrapeMessages(): ScrapedMessage[] {
 
 export async function scrollToLoadMore(
   containerSelector: string,
-  maxScrolls = 10
+  maxScrolls = 50
 ): Promise<void> {
-  const container = document.querySelector(containerSelector);
+  // Find the scrollable message container inside #main
+  let container = document.querySelector(containerSelector);
   if (!container) {
-    console.log('WhatsGenie: scroll container not found for selector:', containerSelector);
+    // Fallback: find the scrollable panel inside #main
+    container = document.querySelector('#main div[tabindex]');
+  }
+  if (!container) {
+    console.log('WhatsGenie: scroll container not found, skipping scroll');
     return;
   }
+  
+  let prevMsgCount = 0;
+  let noChangeRounds = 0;
+  
   for (let i = 0; i < maxScrolls; i++) {
     container.scrollTop = 0;
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 800));
+    
+    const currentCount = document.querySelectorAll('.message-in, .message-out').length;
+    console.log(`WhatsGenie: scroll ${i + 1}/${maxScrolls} — ${currentCount} messages loaded`);
+    
+    if (currentCount === prevMsgCount) {
+      noChangeRounds++;
+      // If 3 consecutive scrolls yield no new messages, we've hit the top
+      if (noChangeRounds >= 3) {
+        console.log('WhatsGenie: reached top of chat history');
+        break;
+      }
+    } else {
+      noChangeRounds = 0;
+    }
+    prevMsgCount = currentCount;
   }
 }
-
-
